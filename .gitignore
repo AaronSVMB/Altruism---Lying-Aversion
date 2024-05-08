@@ -1,5 +1,6 @@
 *.csv
 *.zip
+*.png
 archive/
 src/chinese_test.ipynb
 src/combine_waves.ipynb
@@ -7,3 +8,4 @@ src/main_sessions.ipynb
 src/payments.ipynb
 src/pilot_alpha.ipynb
 src/pilot_beta.ipynb
+src/additional_baseline.ipynb
