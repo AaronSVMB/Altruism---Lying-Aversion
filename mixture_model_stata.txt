@@ -1,0 +1,99 @@
+/*
+Author: Aaron Berman
+Date: 5-20-24
+Description: Do-file for the mixture model for the Cross-Cultural Dictator Games
+*/
+
+
+* ===================================================================================
+* Section: Loading Data
+* ===================================================================================
+
+* Clear any existing data in memory
+
+clear all
+
+* Set the working directory to where the *.csv file is stored
+
+cd "/Users/aaronberman/Desktop/" 
+// C: for Windows
+
+* Import the *.csv file
+
+import delimitted _.csv
+
+* ===================================================================================
+* Section: Prepare Data
+* ===================================================================================
+
+/* 
+Relevant columns: 
+    Group: (Contains the 8 Dictator Games Treatment Combinations)
+    Decision: Choice of participants of what to send to their matched receiver 1, 2, 3, 4, or 5
+*/
+
+* Encode the string 'Group' variable to numeric
+encode Group, gen(Group_num)
+
+* ===================================================================================
+* Section: Mixture Model
+* ===================================================================================
+
+ssc install fmm
+
+* Unrestricted
+
+** Get the unique treatment groups
+levelsof Group_num, local(treatment_groups)
+
+** Loop over each treatment group and fit FMM
+foreach group in `treatment_groups' {
+    * Filter data for the current treatment group
+    preserve
+    keep if Group == `group'
+    
+    * Fit the two-component finite mixture model
+    fmm 2, initrandom : mlogit decision
+    
+    * Store the results with a unique name
+    estimates store fmm_group`group'
+    
+    * Restore the full dataset
+    restore
+}
+
+** Display the results for each treatment group
+foreach group in `treatment_groups' {
+    display "Results for Group `group'"
+    estimates restore fmm_group`group'
+    estimates list
+}
+
+* Restricted
+
+** Fit the two-component finite mixture model on the combined data
+fmm 2, initrandom : mlogit decision
+
+** Store the results
+estimates store fmm_combined
+
+** Display the results for the combined data
+display "Results for Combined Data"
+estimates restore fmm_combined
+estimates list
+
+* Compare
+
+** Load the results from each model for comparison
+foreach group in `treatment_groups' {
+    estimates restore fmm_group`group'
+    * Display relevant statistics
+    display "Group `group':"
+    estat ic
+}
+
+** Load the combined model results
+estimates restore fmm_combined
+** Display relevant statistics for the combined model
+display "Combined Data:"
+estat ic
